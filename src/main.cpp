@@ -1,25 +1,14 @@
 #include <header.h>
 
-void readDHT()
+void readSensor()
 {
-  sensor.read();
-  if (result > 0)
-    Blynk.virtualWrite(V5, temperature);
-  else
-    Blynk.virtualWrite(V5, -1);
-  result = 0;
-}
-
-void ICACHE_RAM_ATTR handleData(float h, float t)
-{
-  temperature = t;
-  result = 1;
-}
-
-void ICACHE_RAM_ATTR handleError(uint8_t e)
-{
-  error = e;
-  result = -1;
+  long sum = 0;
+  float average;
+  for (int i = 0; i < NUM_READINGS; i++)
+    sum += analogRead(TEMP_SENSOR);
+  average = sum / NUM_READINGS;
+  temperature = (1150 - average) / 13;
+  Blynk.virtualWrite(V5, temperature);
 }
 
 int computePID(float input, float setpoint, float kp, float ki, float dt, int minOut, int maxOut)
@@ -97,7 +86,7 @@ BLYNK_WRITE(V2)
     Blynk.syncVirtual(V1);
   }
   if (power && temperatureMaintenance)
-    tickerPi.attach_ms(INTERVAL_PI_REGULATOR, calculatePID);
+    tickerPi.attach_ms(INTERVAL_READ_SENSOR, calculatePID);
 }
 
 BLYNK_WRITE(V3)
@@ -109,9 +98,6 @@ BLYNK_WRITE(V3)
 void setup()
 {
   Blynk.begin(auth, ssid, pass);
-  sensor.setup(DHT_PIN);
-  sensor.onData(handleData);
-  sensor.onError(handleError);
   pinMode(ZERO_PIN, INPUT_PULLUP);
   pinMode(DIMMER_PIN, OUTPUT);
   pinMode(LED_PIN, OUTPUT);
@@ -122,7 +108,7 @@ void setup()
     timer1_attachInterrupt(onTimerISR);
   else
     timer1_detachInterrupt();
-  ticker.attach_ms(INTERVAL_READ_SENSOR, readDHT);
+  ticker.attach_ms(INTERVAL_READ_SENSOR, readSensor);
 }
 
 void loop()

@@ -18,8 +18,8 @@
 
 #define NUM_READINGS_SENSOR 30
 
-#define MAX_TEMP_LEVEL 35  //Петля гистерезиса
-#define MIN_TEMP_LEVEL 33
+#define MAX_TEMP_LEVEL 50  //Петля гистерезиса
+#define MIN_TEMP_LEVEL 47
 boolean temperatureIsAbove = false;
 
 const float kp = 5.0;
